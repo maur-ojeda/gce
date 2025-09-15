@@ -7,6 +7,7 @@ from ..components.forms import formulario_curso
 def vista_administrador():
     """Interfaz para que el administrador gestione los cursos."""
     return rx.vstack(
+        navbar(),
         rx.box(
             rx.text("Debug cursos en consola"),
             on_mount=rx.console_log([

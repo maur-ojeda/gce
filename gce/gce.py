@@ -18,21 +18,6 @@ def index() -> rx.Component:
         )
     )
 
-def admin_page():
-    return rx.cond(
-        State.rol_actual == "administrador",
-        vista_administrador(),
-        rx.fragment(on_mount=rx.redirect("/"))
-
-    )
-
-def estudiante_page():
-    return rx.cond(
-        State.rol_actual == "estudiante",
-        vista_estudiante(),
-        rx.fragment(on_mount=rx.redirect("/"))
-    )
-
 app = rx.App(
      theme=rx.theme(
         accent_color="mint",
@@ -42,7 +27,25 @@ app = rx.App(
         radius="full"
     )
 )
+
+
+
+def admin_route():
+    return rx.cond(
+        State.rol_actual == "administrador",
+        vista_administrador(),
+        rx.box()  # Componente vacío en lugar de redirect
+    )
+
+def student_route():
+    return rx.cond(
+        State.rol_actual == "estudiante",
+        vista_estudiante(),
+        rx.box()  # Componente vacío en lugar de redirect
+    )
+
+
 app.add_page(index)
 app.add_page(index, route="/")
-app.add_page(admin_page, route="/admin")
-app.add_page(estudiante_page, route="/estudiante")
+app.add_page(admin_route, route="/admin")
+app.add_page(student_route, route="/estudiante")

@@ -1,4 +1,5 @@
 import reflex as rx
+from ..components.navbar import navbar
 from ..state import State
 # from ..models import Curso
 
@@ -41,12 +42,14 @@ def tarjeta_curso(curso: dict, mostrar_boton_inscribir: bool = False):
 def vista_estudiante():
     """Vista principal para estudiantes."""
     return rx.vstack(
+        
         rx.cond(
             State.rol_actual != "estudiante",
             rx.redirect("/"),
             rx.console_log('Estudiante') 
         ),
         
+        navbar(),
         rx.heading(
             rx.cond(                
                 State.estudiante_actual.nombre != "",
