@@ -7,9 +7,9 @@ class BaseState(rx.State):
     usuario_actual_id: int = 1
     rol_actual: str = "administrador"
 
-    cursos: list[Curso] = [...]          # tus datos mock
-    profesores: list[Profesor] = [...]
-    estudiantes: list[Estudiante] = [...]
+
+
+
 
     @rx.var(cache=True)
     def profesor_map(self) -> dict[int, str]:
@@ -40,6 +40,21 @@ class BaseState(rx.State):
         self.show_form_modal = False
         self.show_detalle_modal = False
         self.mensaje = ""
+    
+    # ---------- Métodos de sesión ----------
+    def logout(self):
+        """Vuelve al rol por defecto."""
+        self.rol_actual = "estudiante"
+        self.usuario_actual_id = 1
+        # reset UI
+        self.show_form_modal = False
+        self.show_detalle_modal = False
+        self.mensaje = ""
+        self.curso_editando = -1
+
+    def cambiar_rol(self, nuevo: str):
+        self.rol_actual = nuevo
+        self.logout()   # aprovecha el reset
 
 
 # ---------- 2. ADMIN STATE ----------

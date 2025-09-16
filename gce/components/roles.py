@@ -8,7 +8,7 @@ def admin_only(page_func):
         return rx.cond(
             State.rol_actual == "administrador",
             page_func(),
-            rx.redirect("/")
+            rx.fragment()
         )
     return _wrapped
 
@@ -18,6 +18,6 @@ def student_only(page_func):
         return rx.cond(
             State.rol_actual == "estudiante",
             page_func(),
-            rx.redirect("/")
+            rx.fragment()
         )
     return _wrapped
