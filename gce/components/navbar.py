@@ -1,6 +1,5 @@
-# components/navbar.py - Versión actualizada
 import reflex as rx
-from ..state import State
+from ..state import BaseState as State
 
 def navbar():
     return rx.box(
