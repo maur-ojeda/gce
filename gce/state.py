@@ -2,9 +2,17 @@ import reflex as rx
 from .models import Profesor, Estudiante, Curso
 
 class State(rx.State):
+    # ======================================
+    # PROPIEDADES DEL SISTEMA
+    # ======================================
+    
     # Usuario actual
     usuario_actual_id: int = 1
-    rol_actual: str = "administrador"  # Puedes cambiar a "estudiante"
+    rol_actual: str = "administrador"
+    
+    # ======================================
+    # ESTADO DE LA INTERFAZ
+    # ======================================
     
     # Estado de la interfaz de administración
     curso_seleccionado: int = -1
@@ -16,20 +24,14 @@ class State(rx.State):
     mensaje_error: str = ""
     mensaje_exito: str = ""
     
-    def toggle_form_modal(self):
-        """Muestra/oculta el modal del formulario."""
-        self.show_form_modal = not self.show_form_modal
-        if not self.show_form_modal:
-            self.curso_seleccionado = -1
-
-    def toggle_detalle_modal(self):
-        """Muestra/oculta el modal de detalles."""
-        self.show_detalle_modal = not self.show_detalle_modal
-        if not self.show_detalle_modal:
-            self.curso_detalle_id = -1
-            self.mensaje_error = ""
-            self.mensaje_exito = ""
-
+    # Propiedades para confirmación de eliminación
+    mostrar_confirmacion_eliminacion: bool = False
+    curso_a_eliminar_id: int = -1
+    
+    # ======================================
+    # DATOS DE LA APLICACIÓN
+    # ======================================
+    
     # Datos simulados
     cursos: list[Curso] = [
         Curso(id=1, nombre="Introducción a la Programación", profesor_id=1, cupos_totales=20, descripcion="Aprende los fundamentos de la programación.", aplicable="1er Medio", horario="Lunes 15:00-16:30", estudiantes_inscritos=[]),
@@ -46,8 +48,11 @@ class State(rx.State):
         Estudiante(id=1, nombre="Juan Pérez", nivel="1er Medio", cursos_inscritos=[]),
         Estudiante(id=2, nombre="María González", nivel="2do Medio", cursos_inscritos=[1]),
     ]
-
-    # Métodos de ayuda
+    
+    # ======================================
+    # MÉTODOS DE AYUDA
+    # ======================================
+    
     def get_nombre_profesor(self, profesor_id: int) -> str:
         """Busca el nombre de un profesor por su ID."""
         for prof in self.profesores:
@@ -55,6 +60,9 @@ class State(rx.State):
                 return prof.nombre
         return "Desconocido"
     
+    # ======================================
+    # VARIABLES COMPUTADAS
+    # ======================================
     
     @rx.var
     def estudiante_actual(self) -> Estudiante:
@@ -87,7 +95,6 @@ class State(rx.State):
             }
             for curso in self.cursos
         ]
-    
 
     @rx.var
     def cursos_disponibles(self) -> list[dict]:
@@ -135,7 +142,6 @@ class State(rx.State):
         ]
 
     # Métodos para administrador
-    
     @rx.var
     def profesor_select_items(self) -> list[dict]:
         """Items para el select de profesores."""
@@ -143,14 +149,27 @@ class State(rx.State):
             {"label": prof.nombre, "value": str(prof.id)} 
             for prof in self.profesores
         ]
-
+    
+    # ======================================
+    # MÉTODOS CRUD - ADMINISTRADOR
+    # ======================================
     def crear_curso(self, form_data: dict):
         """Crea un nuevo curso."""
+        # Obtener el ID del profesor a partir del nombre
+        profesor_id = 1  # Valor por defecto
+        profesor_nombre = form_data.get("profesor_id", "")  # Aquí viene el nombre
+        
+        # Buscar el ID del profesor por nombre
+        for prof in self.profesores:
+            if prof.nombre == profesor_nombre:
+                profesor_id = prof.id
+                break
+        
         nuevo_id = max([c.id for c in self.cursos], default=0) + 1
         nuevo_curso = Curso(
             id=nuevo_id,
             nombre=form_data.get("nombre", ""),
-            profesor_id=int(form_data.get("profesor_id", 1)),
+            profesor_id=profesor_id,  # ✅ Usar el ID encontrado
             cupos_totales=int(form_data.get("cupos_totales", 10)),
             descripcion=form_data.get("descripcion", ""),
             aplicable=form_data.get("aplicable", ""),
@@ -161,16 +180,28 @@ class State(rx.State):
 
     def editar_curso(self, form_data: dict):
         """Edita un curso existente."""
+        # Obtener el ID del profesor a partir del nombre
+        profesor_id = 1  # Valor por defecto
+        profesor_nombre = form_data.get("profesor_id", "")  # Aquí viene el nombre
+        
+        # Buscar el ID del profesor por nombre
+        for prof in self.profesores:
+            if prof.nombre == profesor_nombre:
+                profesor_id = prof.id
+                break
+        
         for curso in self.cursos:
             if curso.id == self.curso_seleccionado:
                 curso.nombre = form_data.get("nombre", curso.nombre)
-                curso.profesor_id = int(form_data.get("profesor_id", curso.profesor_id))
+                curso.profesor_id = profesor_id  # ✅ Usar el ID encontrado
                 curso.cupos_totales = int(form_data.get("cupos_totales", curso.cupos_totales))
                 curso.descripcion = form_data.get("descripcion", curso.descripcion)
                 curso.aplicable = form_data.get("aplicable", curso.aplicable)
                 curso.horario = form_data.get("horario", curso.horario)
                 break
+    
 
+    
     def handle_crear_curso(self, form_data: dict):
         """Handler para crear curso."""
         self.crear_curso(form_data)
@@ -197,7 +228,41 @@ class State(rx.State):
         self.curso_seleccionado = curso_id
         self.show_form_modal = True
 
-    # Métodos para estudiante
+    # Métodos para confirmación de eliminación
+    def toggle_confirmacion_eliminacion(self):
+        """Muestra/oculta el modal de confirmación de eliminación."""
+        self.mostrar_confirmacion_eliminacion = not self.mostrar_confirmacion_eliminacion
+        if not self.mostrar_confirmacion_eliminacion:
+            self.curso_a_eliminar_id = -1
+
+    def solicitar_eliminacion_curso(self, curso_id: int):
+        """Solicita confirmación antes de eliminar un curso."""
+        self.curso_a_eliminar_id = curso_id
+        self.mostrar_confirmacion_eliminacion = True
+
+    def eliminar_curso_confirmado(self):
+        """Elimina el curso después de confirmación."""
+        if self.curso_a_eliminar_id != -1:
+            # Verificar si tiene estudiantes inscritos
+            curso = next((c for c in self.cursos if c.id == self.curso_a_eliminar_id), None)
+            if curso and len(curso.estudiantes_inscritos) > 0:
+                # Eliminar inscripciones relacionadas
+                for estudiante in self.estudiantes:
+                    if self.curso_a_eliminar_id in estudiante.cursos_inscritos:
+                        estudiante.cursos_inscritos.remove(self.curso_a_eliminar_id)
+            
+            # Eliminar el curso
+            self.cursos = [c for c in self.cursos if c.id != self.curso_a_eliminar_id]
+            
+            # Resetear estados
+            self.curso_a_eliminar_id = -1
+            self.mostrar_confirmacion_eliminacion = False
+            self.mensaje_exito = "Curso eliminado correctamente"
+
+    # ======================================
+    # MÉTODOS - ESTUDIANTE
+    # ======================================
+    
     def mostrar_detalle_curso(self, curso_id: int):
         """Muestra el modal con detalles del curso."""
         self.curso_detalle_id = curso_id
@@ -251,9 +316,10 @@ class State(rx.State):
             self.crear_curso(form_data)
         self.show_form_modal = False
 
-
-# Agrega estos métodos a tu State en state.py
-
+    # ======================================
+    # MÉTODOS DE NAVEGACIÓN Y AUTENTICACIÓN
+    # ======================================
+    
     def cambiar_rol(self, nuevo_rol: str):
         """Cambia el rol del usuario actual."""
         self.rol_actual = nuevo_rol
@@ -265,9 +331,8 @@ class State(rx.State):
 
     def logout(self):
         """Cierra sesión y vuelve al rol por defecto."""
-        self.rol_actual = "estudiante"  # o "invitado"
-        self.usuario_actual_id = 1        
-
+        self.rol_actual = "estudiante"
+        self.usuario_actual_id = 1
 
     @rx.var
     def puede_ver_admin(self) -> bool:
@@ -291,7 +356,6 @@ class State(rx.State):
             return rx.redirect("/estudiante")
         return rx.window_alert("No tienes permisos de estudiante")
 
-    # En state.py
     def check_admin_access(self):
         """Verifica acceso de admin y redirige si no tiene permisos."""
         if self.rol_actual != "administrador":
@@ -304,3 +368,18 @@ class State(rx.State):
             return rx.redirect("/")
         return None
 
+    def toggle_form_modal(self):
+        """Muestra/oculta el modal del formulario."""
+        self.show_form_modal = not self.show_form_modal
+        if not self.show_form_modal:
+            self.curso_seleccionado = -1
+    
+    def toggle_detalle_modal(self):
+        """Muestra/oculta el modal de detalles."""
+        self.show_detalle_modal = not self.show_detalle_modal
+        if not self.show_detalle_modal:
+            self.curso_detalle_id = -1
+            self.mensaje_error = ""
+            self.mensaje_exito = ""
+
+            

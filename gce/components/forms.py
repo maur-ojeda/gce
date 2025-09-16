@@ -2,107 +2,57 @@ import reflex as rx
 from ..state import State
 
 def formulario_curso():
-    """Formulario para crear o editar un curso."""
+    """Formulario para crear o editar curso."""
     
-    return rx.cond(
-        State.curso_seleccionado != -1,
-        # Formulario para editar
-        rx.form(
-            rx.vstack(
-                rx.input(
-                    placeholder="Nombre del Curso",
-                    name="nombre"
-                ),
-                rx.select(
-                    ["Ana López", "Carlos Pérez"],
-                    placeholder="Seleccionar Profesor",
-                    name="profesor_id"
-                ),
-                rx.input(
-                    placeholder="Aplicable para (Ej. 1er Medio)",
-                    name="aplicable"
-                ),
-                rx.input(
-                    placeholder="Horario (Ej. Lunes 15:00-16:30)",
-                    name="horario"
-                ),
-                rx.input(
-                    placeholder="Cupos Totales",
-                    name="cupos_totales",
-                    type="number"
-                ),
-                rx.text_area(
-                    placeholder="Descripción del Curso",
-                    name="descripcion"
-                ),
-                rx.button(
+    return rx.form(
+        rx.vstack(
+            rx.input(
+                placeholder="Nombre del Curso *",
+                name="nombre",
+                required=True
+            ),
+            rx.select(
+                ["Ana López", "Carlos Pérez"],  # ✅ Solo las etiquetas
+                placeholder="Seleccionar Profesor *",
+                name="profesor_id",  # ✅ El valor será el texto seleccionado
+                required=True
+            ),
+            rx.input(
+                placeholder="Aplicable para (Ej. 1er Medio) *",
+                name="aplicable",
+                required=True
+            ),
+            rx.input(
+                placeholder="Horario (Ej. Lunes 15:00-16:30) *",
+                name="horario",
+                required=True
+            ),
+            rx.input(
+                placeholder="Cupos Totales *",
+                name="cupos_totales",
+                type="number",
+                required=True,
+                min="1"
+            ),
+            rx.text_area(
+                placeholder="Descripción del Curso *",
+                name="descripcion",
+                required=True,
+                rows="4"
+            ),
+            rx.button(
+                rx.cond(
+                    State.curso_seleccionado != -1,
                     "Actualizar Curso",
-                    width="100%",
-                    type="submit",
-                    color_scheme="blue"
+                    "Crear Curso"
                 ),
-                spacing="2",
-                width="100%"
+                width="100%",
+                type="submit",
+                color_scheme="blue",
+                margin_top="1em"
             ),
-            on_submit=State.editar_curso
+            spacing="1",
+            width="100%"
         ),
-        # Formulario para crear
-        rx.form(
-            rx.vstack(
-                rx.input(
-                    placeholder="Nombre del Curso",
-                    name="nombre"
-                ),
-                rx.select(
-                    ["Ana López", "Carlos Pérez"],
-                    placeholder="Seleccionar Profesor",
-                    name="profesor_id"
-                ),
-                rx.input(
-                    placeholder="Aplicable para (Ej. 1er Medio)",
-                    name="aplicable"
-                ),
-                rx.input(
-                    placeholder="Horario (Ej. Lunes 15:00-16:30)",
-                    name="horario"
-                ),
-                rx.input(
-                    placeholder="Cupos Totales",
-                    name="cupos_totales",
-                    type="number"
-                ),
-                rx.text_area(
-                    placeholder="Descripción del Curso",
-                    name="descripcion"
-                ),
-
-                rx.flex(
-
-                     rx.dialog.close(
-                        rx.button(
-                            "Cerrar",
-                            size="3",
-                            color_scheme="gray",
-                            width="50%",
-                        ),
-                    ),
-
-                    rx.button(
-                    "Crear Curso",                
-                    type="submit",
-                    color_scheme="green",
-                    size="3",
-                    width="50%",
-                    ),
-                    spacing="2",
-                    width="100%",
-                    padding_top="2"
-                    ),
-                margin_bottom="2",
-                margin_top="2",          
-                spacing="2",
-                width="100%"
-            ),
-            on_submit=State.crear_curso
-        )
+        on_submit=State.handle_submit
     )
