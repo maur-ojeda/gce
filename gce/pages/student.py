@@ -1,8 +1,9 @@
+# pages/student.py
 import reflex as rx
-from ..components import PageShell, TarjetaCurso, student_only
-from ..state import StudentState
+from ..components import PageShell, TarjetaCurso
+from ..state.student import StudentState
+from ..state.base import BaseState
 
-@student_only
 def vista_estudiante():
     return PageShell(
         rx.heading(f"Bienvenido, {StudentState.estudiante_actual.nombre}", size="8", color="white" ),
@@ -53,3 +54,5 @@ def vista_estudiante():
             on_open_change=StudentState.mostrar_detalle(-1)
         ),
     )
+
+vista_estudiante.on_load = BaseState.require_student

@@ -1,45 +1,54 @@
 import reflex as rx
 from ..state import AdminState
 
-
-
-
 def FormularioCurso():
     return rx.form(
         rx.vstack(
             rx.input(
                 placeholder="Nombre del Curso *",
                 name="nombre",
-                required=True
+                required=True,
+                value=AdminState.nombre,
+                on_change=AdminState.set_nombre,
             ),
             rx.select(
                 ["Ana López", "Carlos Pérez"],
                 placeholder="Seleccionar Profesor *",
                 name="profesor_id",
-                required=True
+                required=True,
+                value=AdminState.profesor_id,
+                on_change=AdminState.set_profesor_id,
             ),
             rx.input(
                 placeholder="Aplicable para (Ej. 1er Medio) *",
                 name="aplicable",
-                required=True
+                required=True,
+                value=AdminState.aplicable,
+                on_change=AdminState.set_aplicable,
             ),
             rx.input(
                 placeholder="Horario (Ej. Lunes 15:00-16:30) *",
                 name="horario",
-                required=True
+                required=True,
+                value=AdminState.horario,
+                on_change=AdminState.set_horario,
             ),
             rx.input(
                 placeholder="Cupos Totales *",
                 name="cupos_totales",
                 type="number",
                 required=True,
-                min="1"
+                min="1",
+                value=AdminState.cupos_totales.to_string(),
+                on_change=AdminState.set_cupos_totales,
             ),
             rx.text_area(
                 placeholder="Descripción del Curso *",
                 name="descripcion",
                 required=True,
-                rows="4"
+                rows="4",
+                value=AdminState.descripcion,
+                on_change=AdminState.set_descripcion,
             ),
             rx.button(
                 rx.cond(

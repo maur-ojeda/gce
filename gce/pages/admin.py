@@ -1,10 +1,9 @@
 # pages/admin.py
 import reflex as rx
-from ..components import PageShell, TarjetaCurso, FormularioCurso, admin_only
-from ..state import AdminState
-from ..components.forms import FormularioCurso
+from ..components import PageShell, FormularioCurso
+from ..state.admin import AdminState
+from ..state.base import BaseState
 
-@admin_only
 def vista_administrador():
     return PageShell(
         rx.heading("Panel de Administración", size="8", color="white"),
@@ -33,7 +32,7 @@ def vista_administrador():
                             rx.button("✏️", size="2",
                             on_click=lambda: AdminState.editar(c["id"])),
                             rx.button("🗑️", size="2", color_scheme="red",
-                            on_click=lambda: AdminState.eliminar(c["id"])),
+                            on_click=lambda: AdminState.preparar_eliminacion(c["id"])),
                             spacing="1"
                         )
                     ),
@@ -52,4 +51,32 @@ def vista_administrador():
             open=AdminState.show_form_modal,
             on_open_change=AdminState.toggle_modal
         ),
+        # Delete Confirmation Dialog
+        rx.alert_dialog.root(
+            rx.alert_dialog.content(
+                rx.alert_dialog.title("Confirmar Eliminación"),
+                rx.alert_dialog.description(
+                    "¿Estás seguro de que quieres eliminar este curso? Esta acción no se puede deshacer."
+                ),
+                rx.flex(
+                    rx.alert_dialog.cancel(
+                        rx.button("Cancelar", variant="soft", color_scheme="gray")
+                    ),
+                    rx.alert_dialog.action(
+                        rx.button(
+                            "Eliminar",
+                            color_scheme="red",
+                            on_click=AdminState.eliminar,
+                        )
+                    ),
+                    spacing="3",
+                    margin_top="15px",
+                    justify="end",
+                ),
+            ),
+            open=AdminState.show_delete_dialog,
+            on_open_change=AdminState.cancelar_eliminacion,
+        ),
     )
+
+vista_administrador.on_load = BaseState.require_admin
