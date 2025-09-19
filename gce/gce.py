@@ -6,4 +6,4 @@ theme=rx.theme(accent_color="mint", radius="full"),
 )
 app.add_page(vista_administrador, route="/admin")
 app.add_page(vista_estudiante, route="/estudiante")
-app.add_page(vista_estudiante, route="/")   # home = student
+app.add_page(vista_administrador, route="/")   # home = student

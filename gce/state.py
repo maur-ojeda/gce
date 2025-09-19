@@ -1,16 +1,28 @@
-# gce/state.py
 import reflex as rx
 from .models import Curso, Profesor, Estudiante
 
-# ---------- 1. BASE STATE ----------
+# ---------- 1. BASE STATE (datos y helpers comunes) ----------
 class BaseState(rx.State):
     usuario_actual_id: int = 1
     rol_actual: str = "administrador"
 
+    # DATOS → siempre en BaseState
+    cursos: list[Curso] = [
+        Curso(id=1, nombre="Intro Programación", profesor_id=1, cupos_totales=20,
+              descripcion="Fundamentos", aplicable="1er Medio", horario="Lunes 15:00-16:30",
+              estudiantes_inscritos=[]),
+        
+    ]
+    profesores: list[Profesor] = [
+        Profesor(id=1, nombre="Ana López"),
+        Profesor(id=2, nombre="Carlos Pérez"),
+    ]
+    estudiantes: list[Estudiante] = [
+        Estudiante(id=1, nombre="Juan Pérez", nivel="1er Medio", cursos_inscritos=[]),
+        Estudiante(id=2, nombre="María González", nivel="2do Medio", cursos_inscritos=[1]),
+    ]
 
-
-
-
+    # HELPERS / VARS
     @rx.var(cache=True)
     def profesor_map(self) -> dict[int, str]:
         return {p.id: p.nombre for p in self.profesores}
@@ -34,30 +46,17 @@ class BaseState(rx.State):
             for curso in self.cursos
         ]
 
-    def cambiar_rol(self, nuevo: str):
-        self.rol_actual = nuevo
-        # reset UI
-        self.show_form_modal = False
-        self.show_detalle_modal = False
-        self.mensaje = ""
-    
-    # ---------- Métodos de sesión ----------
+    # MÉTODOS COMUNES
     def logout(self):
-        """Vuelve al rol por defecto."""
         self.rol_actual = "estudiante"
         self.usuario_actual_id = 1
-        # reset UI
-        self.show_form_modal = False
-        self.show_detalle_modal = False
-        self.mensaje = ""
-        self.curso_editando = -1
 
     def cambiar_rol(self, nuevo: str):
         self.rol_actual = nuevo
-        self.logout()   # aprovecha el reset
+        self.logout()
 
 
-# ---------- 2. ADMIN STATE ----------
+# ---------- 2. ADMIN STATE (solo lógica de admin) ----------
 class AdminState(BaseState):
     show_form_modal: bool = False
     curso_editando: int = -1
@@ -77,7 +76,7 @@ class AdminState(BaseState):
             (p.id for p in self.profesores if p.nombre == profesor_nombre),
             1
         )
-        if self.curso_editando == -1:   # CREAR
+        if self.curso_editando == -1:  # CREAR
             nuevo_id = max((c.id for c in self.cursos), default=0) + 1
             self.cursos.append(Curso(
                 id=nuevo_id,
@@ -86,9 +85,10 @@ class AdminState(BaseState):
                 cupos_totales=int(form["cupos_totales"]),
                 descripcion=form["descripcion"],
                 aplicable=form["aplicable"],
-                horario=form["horario"]
+                horario=form["horario"],
+                estudiantes_inscritos=[]
             ))
-        else:                            # EDITAR
+        else:  # EDITAR
             curso = next(c for c in self.cursos if c.id == self.curso_editando)
             curso.nombre = form["nombre"]
             curso.profesor_id = profesor_id
@@ -105,7 +105,7 @@ class AdminState(BaseState):
         self.cursos = [c for c in self.cursos if c.id != curso_id]
 
 
-# ---------- 3. STUDENT STATE ----------
+# ---------- 3. STUDENT STATE (solo lógica de estudiante) ----------
 class StudentState(BaseState):
     show_detalle_modal: bool = False
     detalle_curso_id: int = -1
