@@ -5,6 +5,7 @@ from ..models import Curso, Profesor, Estudiante
 class BaseState(rx.State):
     usuario_actual_id: int = 1
     rol_actual: str = ""
+    inscripcion_activa: bool = True # Keep this
 
     # DATOS → siempre en BaseState
     cursos: list[Curso] = [
@@ -87,6 +88,10 @@ class BaseState(rx.State):
     @rx.var
     def is_authenticated(self) -> bool:
         return self.rol_actual != ""
+
+    def set_inscripcion_activa(self, value: bool):
+        print(f"set_inscripcion_activa called with: {value}") # Add this line
+        self.inscripcion_activa = value
 
     # MÉTODOS COMUNES
     def login(self, rol: str):

@@ -7,23 +7,30 @@ MAX_CURSOS_INSCRITOS = 3 # Define the maximum number of courses
 class StudentState(UIState):
     mensaje: str = ""
     show_success_modal: bool = False
-    show_inscribir_button_in_modal: bool = False # Add this
+    show_inscribir_button_in_modal: bool = False
+    show_darse_de_baja_button_in_modal: bool = False # Add this
 
     def mostrar_detalle(self, curso_id: int):
         self.detalle_curso_id = curso_id
         # Determine if the "Inscribirme" button should be shown in the modal
         curso = next((c for c in self.cursos_con_profesores if c["id"] == curso_id), None)
         if curso:
-            # Check if the course is in cursos_disponibles
-            # This logic is similar to how cursos_disponibles is computed
             est = self.estudiante_actual
+            # Logic for "Inscribirme" button
             self.show_inscribir_button_in_modal = (
                 curso["aplicable"] == est.nivel
                 and curso["id"] not in est.cursos_inscritos
                 and curso["cupos_disponibles"] > 0
             )
+            # Logic for "Darse de Baja" button
+            self.show_darse_de_baja_button_in_modal = (
+                est.id in curso["estudiantes_inscritos"]
+            )
+            print(f"show_darse_de_baja_button_in_modal: {self.show_darse_de_baja_button_in_modal}") # Add this
+            print(f"est.id in curso['estudiantes_inscritos']: {est.id in curso['estudiantes_inscritos']}") # Add this
         else:
             self.show_inscribir_button_in_modal = False
+            self.show_darse_de_baja_button_in_modal = False
 
         self.toggle_detalle()
 
@@ -50,6 +57,10 @@ class StudentState(UIState):
 
 
     def _validar_inscripcion(self, curso: Curso) -> str | None:
+        # Check enrollment period
+        if not self.inscripcion_activa: # Access inscripcion_activa from BaseState
+            return "Las inscripciones están cerradas en este momento."
+
         est = self.estudiante_actual
         if curso.aplicable != est.nivel:
             return f"Solo para {curso.aplicable}"
@@ -84,6 +95,34 @@ class StudentState(UIState):
         self.mensaje = f"¡Inscrito en {curso.nombre}!"
         self.show_success_modal = True # Show success modal
         self.show_detalle_modal = False # Explicitly close detail modal
+
+    def darse_de_baja(self, curso_id: int):
+        # Check enrollment period
+        if not self.inscripcion_activa:
+            self.mensaje = "Las bajas de cursos están cerradas en este momento."
+            self.show_success_modal = True # Use success modal for this message
+            self.show_detalle_modal = False
+            return
+
+        curso = next((c for c in self.cursos if c.id == curso_id), None)
+        if not curso:
+            self.mensaje = "Curso no encontrado"
+            self.show_success_modal = True
+            self.show_detalle_modal = False
+            return
+
+        est = self.estudiante_actual
+        if est.id not in curso.estudiantes_inscritos:
+            self.mensaje = "No estás inscrito en este curso."
+            self.show_success_modal = True
+            self.show_detalle_modal = False
+            return
+
+        curso.estudiantes_inscritos.remove(est.id)
+        est.cursos_inscritos.remove(curso_id)
+        self.mensaje = f"¡Te has dado de baja de {curso.nombre}!"
+        self.show_success_modal = True
+        self.show_detalle_modal = False
 
     def cerrar_modal_exito(self):
         self.show_success_modal = False

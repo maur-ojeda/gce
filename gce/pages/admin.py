@@ -8,6 +8,15 @@ def vista_administrador():
     return PageShell(
         rx.heading("Panel de Administración", size="8", color="white"),
         rx.hstack(
+            rx.text("Período de Inscripción:"),
+            rx.switch(
+                checked=BaseState.inscripcion_activa, # Bind to boolean state
+                on_change=BaseState.set_inscripcion_activa, # Directly use the setter
+            ),
+            spacing="4",
+            margin_bottom="1em",
+        ),
+        rx.hstack(
             rx.heading("Cursos", size="6"),
             rx.spacer(),
             rx.button("Crear Curso", on_click=AdminState.toggle_modal, color_scheme="green"),
