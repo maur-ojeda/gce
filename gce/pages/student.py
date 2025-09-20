@@ -1,4 +1,3 @@
-# pages/student.py
 import reflex as rx
 from ..components import PageShell, TarjetaCurso
 from ..state.student import StudentState
@@ -46,7 +45,10 @@ def vista_estudiante():
                             rx.text(f"Horario: {c['horario']}"),
                             rx.text(f"Cupos: {c.get('cupos_disponibles', 0)}/{c['cupos_totales']}"),
                             rx.hstack(
-                                rx.button("Inscribirme", color_scheme="green", on_click=lambda: StudentState.inscribir(c["id"])),
+                                rx.cond(
+                                    StudentState.show_inscribir_button_in_modal, # Use the new state var
+                                    rx.button("Inscribirme", color_scheme="green", on_click=lambda: StudentState.inscribir(c["id"])),
+                                ),
                                 rx.button("Cerrar", on_click=StudentState.mostrar_detalle(-1)),
                                 spacing="3", mt="4"
                             )
