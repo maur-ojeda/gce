@@ -131,6 +131,8 @@ class StudentState(UIState):
 
     @rx.var(cache=True)
     def cursos_disponibles(self) -> list[dict]:
+        if not self.inscripcion_activa:
+            return [] # Return empty list if enrollment is not active
         est = self.estudiante_actual
         return [
             c for c in self.cursos_con_profesores

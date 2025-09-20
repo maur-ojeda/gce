@@ -46,8 +46,12 @@ def vista_estudiante():
                             rx.text(f"Cupos: {c.get('cupos_disponibles', 0)}/{c['cupos_totales']}"),
                             rx.hstack(
                                 rx.cond(
-                                    StudentState.show_inscribir_button_in_modal, # Use the new state var
+                                    StudentState.show_inscribir_button_in_modal,
                                     rx.button("Inscribirme", color_scheme="green", on_click=lambda: StudentState.inscribir(c["id"])),
+                                ),
+                                rx.cond(
+                                    StudentState.show_darse_de_baja_button_in_modal,
+                                    rx.button("Darse de Baja", color_scheme="red", on_click=lambda: StudentState.darse_de_baja(c["id"])),
                                 ),
                                 rx.button("Cerrar", on_click=StudentState.mostrar_detalle(-1)),
                                 spacing="3", mt="4"
