@@ -37,6 +37,10 @@ def vista_estudiante():
                         rx.vstack(
                             rx.heading(c["nombre"], size="6"),
                             rx.text(f"Profesor: {c['profesor_nombre']}"),
+                            rx.cond(
+                                c["profesor_suplente_nombre"] != "N/A", # Only show if not N/A
+                                rx.text(f"Profesor Suplente: {c['profesor_suplente_nombre']}"),
+                            ),
                             rx.text(f"Descripción: {c['descripcion']}"),
                             rx.text(f"Aplicable: {c['aplicable']}"),
                             rx.text(f"Horario: {c['horario']}"),

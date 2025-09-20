@@ -9,6 +9,10 @@ def TarjetaCurso(curso: dict, mostrar_boton_inscribir: bool = False):
             rx.vstack(
                 rx.heading(curso["nombre"], size="4"),
                 rx.text(f"Profesor: {curso['profesor_nombre']}", size="2", color="gray"),
+                rx.cond(
+                    curso["profesor_suplente_nombre"] != "N/A", # Only show if not N/A
+                    rx.text(f"Profesor Suplente: {curso['profesor_suplente_nombre']}", size="2", color="gray"),
+                ),
                 rx.text(f"Horario: {curso['horario']}", size="2"),
                 rx.text(f"Cupos: {curso.get('cupos_disponibles', 0)}/{curso['cupos_totales']}", size="2"),
                 rx.text(curso["descripcion"], size="2", mt="1"),

@@ -16,6 +16,7 @@ class Curso(rx.Base):
     id: int
     nombre: str
     profesor_id: int
+    profesor_suplente_id: int | None = None
     cupos_totales: int
     descripcion: str
     aplicable: str

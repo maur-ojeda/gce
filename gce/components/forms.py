@@ -1,7 +1,8 @@
 import reflex as rx
-from ..state import AdminState
+from gce.state.admin import AdminState
+from gce.state.base import BaseState # Add this import
 
-def FormularioCurso():
+def FormularioCurso(profesor_nombres: list[str]): # Add the prop here
     return rx.form(
         rx.vstack(
             rx.input(
@@ -12,12 +13,19 @@ def FormularioCurso():
                 on_change=AdminState.set_nombre,
             ),
             rx.select(
-                ["Ana López", "Carlos Pérez"],
-                placeholder="Seleccionar Profesor *",
+                BaseState.profesor_nombres, # Use the prop here
+                placeholder="Seleccionar Profesor Principal *",
                 name="profesor_id",
                 required=True,
                 value=AdminState.profesor_id,
                 on_change=AdminState.set_profesor_id,
+            ),
+            rx.select(
+                BaseState.profesor_nombres, # Use the prop here
+                placeholder="Seleccionar Profesor Suplente (Opcional)",
+                name="profesor_suplente_id",
+                value=AdminState.profesor_suplente_id,
+                on_change=AdminState.set_profesor_suplente_id,
             ),
             rx.input(
                 placeholder="Aplicable para (Ej. 1er Medio) *",

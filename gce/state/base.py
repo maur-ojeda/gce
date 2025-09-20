@@ -28,6 +28,10 @@ class BaseState(rx.State):
         return {p.id: p.nombre for p in self.profesores}
 
     @rx.var(cache=True)
+    def profesor_nombres(self) -> list[str]:
+        return [p.nombre for p in self.profesores]
+
+    @rx.var(cache=True)
     def estudiante_actual(self) -> Estudiante:
         return next(
             (e for e in self.estudiantes if e.id == self.usuario_actual_id),
@@ -40,6 +44,7 @@ class BaseState(rx.State):
             {
                 **curso.dict(),
                 "profesor_nombre": self.profesor_map.get(curso.profesor_id, "Desconocido"),
+                "profesor_suplente_nombre": self.profesor_map.get(curso.profesor_suplente_id, "N/A") if curso.profesor_suplente_id else "N/A",
                 "inscritos_count": len(curso.estudiantes_inscritos),
                 "cupos_disponibles": curso.cupos_totales - len(curso.estudiantes_inscritos)
             }

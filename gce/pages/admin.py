@@ -15,7 +15,19 @@ def vista_administrador():
         ),
         rx.divider(),
         rx.table.root(
-        rx.table.header("Cursos Existentes"),
+        rx.table.header(
+            rx.table.row(
+                rx.table.column_header_cell("ID"),
+                rx.table.column_header_cell("Nombre"),
+                rx.table.column_header_cell("Profesor Principal"),
+                rx.table.column_header_cell("Profesor Suplente"), # Add this
+                rx.table.column_header_cell("Aplicable"),
+                rx.table.column_header_cell("Horario"),
+                rx.table.column_header_cell("Cupos Totales"),
+                rx.table.column_header_cell("Inscritos"),
+                rx.table.column_header_cell("Acciones"),
+            )
+        ),
         rx.table.body(
             rx.foreach(
             AdminState.cursos_con_profesores,
@@ -23,6 +35,7 @@ def vista_administrador():
                     rx.table.cell(c["id"]),
                     rx.table.cell(c["nombre"]),
                     rx.table.cell(c["profesor_nombre"]),
+                    rx.table.cell(c["profesor_suplente_nombre"]),
                     rx.table.cell(c["aplicable"]),
                     rx.table.cell(c["horario"]),
                     rx.table.cell(f"{c['cupos_totales']}"),
@@ -45,7 +58,7 @@ def vista_administrador():
         rx.dialog.root(
             rx.dialog.content(
                 rx.dialog.title("Crear / Editar Curso"),
-                FormularioCurso(),
+                FormularioCurso(profesor_nombres=AdminState.profesor_nombres),
                 rx.dialog.close(rx.button("Cancelar", variant="soft"))
             ),
             open=AdminState.show_form_modal,

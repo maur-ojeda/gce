@@ -6,6 +6,7 @@ class AdminState(UIState):
     curso_editando: int = -1
     nombre: str = ""
     profesor_id: str = ""
+    profesor_suplente_id: str = "" # Add this line
     aplicable: str = ""
     horario: str = ""
     cupos_totales: int = 0
@@ -18,6 +19,9 @@ class AdminState(UIState):
 
     def set_profesor_id(self, value: str):
         self.profesor_id = value
+
+    def set_profesor_suplente_id(self, value: str): # Add this method
+        self.profesor_suplente_id = value
 
     def set_aplicable(self, value: str):
         self.aplicable = value
@@ -37,6 +41,7 @@ class AdminState(UIState):
     def _clear_form(self):
         self.nombre = ""
         self.profesor_id = ""
+        self.profesor_suplente_id = "" # Clear this
         self.aplicable = ""
         self.horario = ""
         self.cupos_totales = 0
@@ -56,6 +61,19 @@ class AdminState(UIState):
             profesor = next((p for p in self.profesores if p.id == curso.profesor_id), None)
             if profesor:
                 self.profesor_id = profesor.nombre
+            else:
+                self.profesor_id = "" # Clear if not found
+
+            # Populate substitute professor
+            if curso.profesor_suplente_id:
+                profesor_suplente = next((p for p in self.profesores if p.id == curso.profesor_suplente_id), None)
+                if profesor_suplente:
+                    self.profesor_suplente_id = profesor_suplente.nombre
+                else:
+                    self.profesor_suplente_id = ""
+            else:
+                self.profesor_suplente_id = ""
+
             self.aplicable = curso.aplicable
             self.horario = curso.horario
             self.cupos_totales = curso.cupos_totales
@@ -65,14 +83,20 @@ class AdminState(UIState):
     def guardar(self):
         profesor_id = next(
             (p.id for p in self.profesores if p.nombre == self.profesor_id),
-            1
+            None # Use None if not found
         )
+        profesor_suplente_id = next( # Add this
+            (p.id for p in self.profesores if p.nombre == self.profesor_suplente_id),
+            None # Use None if not found
+        )
+
         if self.curso_editando == -1:  # CREAR
             nuevo_id = max((c.id for c in self.cursos), default=0) + 1
             self.cursos.append(Curso(
                 id=nuevo_id,
                 nombre=self.nombre,
                 profesor_id=profesor_id,
+                profesor_suplente_id=profesor_suplente_id, # Add this
                 cupos_totales=self.cupos_totales,
                 descripcion=self.descripcion,
                 aplicable=self.aplicable,
@@ -83,6 +107,7 @@ class AdminState(UIState):
             curso = next(c for c in self.cursos if c.id == self.curso_editando)
             curso.nombre = self.nombre
             curso.profesor_id = profesor_id
+            curso.profesor_suplente_id = profesor_suplente_id, # Add this
             curso.cupos_totales = self.cupos_totales
             curso.descripcion = self.descripcion
             curso.aplicable = self.aplicable
