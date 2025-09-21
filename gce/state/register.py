@@ -1,7 +1,10 @@
 import reflex as rx
 import re
+import sqlmodel as sm
 from .ui import UIState
+from .base import get_session
 from ..models import Estudiante
+from ..database import get_password_hash
 
 class RegisterState(UIState):
     nombre: str = ""
@@ -19,7 +22,7 @@ class RegisterState(UIState):
         self.password = password
 
     def handle_registration(self):
-        # CA-1.3: Validar formato de correo y fortaleza de contraseña
+        # Validar formato de correo y fortaleza de contraseña
         if not re.match(r"[^@]+@[^@]+\.[^@]+", self.email):
             self.mensaje = "Formato de correo electrónico inválido."
             return
@@ -28,23 +31,34 @@ class RegisterState(UIState):
             self.mensaje = "La contraseña debe tener al menos 8 caracteres."
             return
 
-        # CA-1.6: Verificar si el correo ya existe
-        if any(est.nombre == self.email for est in self.estudiantes):
-            self.mensaje = "El correo electrónico ya está registrado."
-            return
+        with get_session() as session:
+            # Verificar si el correo ya existe
+            existing_student = session.exec(
+                sm.select(Estudiante).where(Estudiante.email == self.email)
+            ).first()
 
-        # CA-1.4: Crear cuenta con rol de "Estudiante"
-        # For now, we are using the student's name as the email.
-        # In a real application, you would have a separate User model.
-        new_student_id = len(self.estudiantes) + 1
-        new_student = Estudiante(
-            id=new_student_id,
-            nombre=self.nombre,
-            nivel="Primaria",  # Default level
-            cursos_inscritos=[]
-        )
-        self.estudiantes.append(new_student)
+            if existing_student:
+                self.mensaje = "El correo electrónico ya está registrado."
+                return
 
-        # CA-1.5: Notificar al usuario
+            # Crear cuenta con rol de "Estudiante"
+            hashed_password = get_password_hash(self.password)
+            new_student = Estudiante(
+                nombre=self.nombre,
+                email=self.email,
+                password=hashed_password,
+                nivel="Primaria",  # Default level
+                cursos_inscritos=[]
+            )
+            session.add(new_student)
+            session.commit()
+
+        # Notificar al usuario
         self.mensaje = "¡Registro exitoso! Ahora puedes iniciar sesión."
         return rx.redirect("/login")
+
+    def clear_fields(self):
+        self.nombre = ""
+        self.email = ""
+        self.password = ""
+        self.mensaje = ""

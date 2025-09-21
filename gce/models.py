@@ -1,19 +1,21 @@
 import reflex as rx
-from pydantic import Field 
+import sqlmodel as sm
+import sqlalchemy as sa
 
-class Profesor(rx.Base):
-    id: int
+class Profesor(sm.SQLModel, table=True):
+    id: int | None = sm.Field(default=None, primary_key=True)
     nombre: str
 
-class Estudiante(rx.Base):
-    id: int
+class Estudiante(sm.SQLModel, table=True):
+    id: int | None = sm.Field(default=None, primary_key=True)
     nombre: str
+    email: str = sm.Field(unique=True, index=True)
+    password: str
     nivel: str
-    cursos_inscritos: list[int] = Field(default_factory=list)
+    cursos_inscritos: list[int] = sm.Field(default=[], sa_column=sa.Column(sa.JSON))
 
-
-class Curso(rx.Base):
-    id: int
+class Curso(sm.SQLModel, table=True):
+    id: int | None = sm.Field(default=None, primary_key=True)
     nombre: str
     profesor_id: int
     profesor_suplente_id: int | None = None
@@ -21,5 +23,5 @@ class Curso(rx.Base):
     descripcion: str
     aplicable: str
     horario: str
-    estudiantes_inscritos: list[int] = Field(default_factory=list)
+    estudiantes_inscritos: list[int] = sm.Field(default=[], sa_column=sa.Column(sa.JSON))
     

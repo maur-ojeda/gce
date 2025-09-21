@@ -3,6 +3,11 @@ from gce.pages.admin import vista_administrador
 from gce.pages.student import vista_estudiante
 from gce.pages.login import login_page
 from gce.pages.register import vista_registro
+from .database import create_db_and_tables, init_db
+
+# Create and initialize the database
+create_db_and_tables()
+init_db()
 
 app = rx.App(
     theme=rx.theme(accent_color="mint", radius="full"),

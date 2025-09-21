@@ -1,2 +1,5 @@
 
 reflex==0.8.10
+sqlmodel
+passlib
+bcrypt==4.0.1
