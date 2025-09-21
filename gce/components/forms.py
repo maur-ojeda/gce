@@ -72,5 +72,5 @@ def FormularioCurso(profesor_nombres: list[str]): # Add the prop here
             spacing="1",
             width="100%"
         ),
-        on_submit=AdminState.guardar
+        on_submit=AdminState.guardar_curso
     )

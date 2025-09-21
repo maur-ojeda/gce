@@ -85,7 +85,7 @@ class BaseState(rx.State):
     def logout(self):
         self.rol_actual = ""
         self.usuario_actual_id = 1
-        return rx.redirect("/login")
+        return rx.redirect("/x")
 
     def require_admin(self):
         if not self.is_authenticated or self.rol_actual != "administrador":
