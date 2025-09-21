@@ -23,6 +23,7 @@ def login_page():
                 spacing="4",
                 margin_top="2rem"
             ),
+            rx.link("¿No tienes una cuenta? Regístrate aquí", href="/register", margin_top="1rem"),
             align="center",
             spacing="4",
             padding="2rem",
