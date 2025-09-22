@@ -30,6 +30,17 @@ class AdminState(UIState):
     student_nivel: str = ""
     student_password: str = ""
 
+    # --- TEACHER MANAGEMENT STATE ---
+    editing_teacher_id: int | None = None
+    show_teacher_form: bool = False
+    teacher_search_query: str = ""
+    teacher_list_version: int = 0
+    teacher_nombre: str = ""
+    teacher_email: str = ""
+    teacher_password: str = ""
+    teacher_courses_primary: list[int] = []
+    teacher_courses_substitute: list[int] = []
+
     #<editor-fold desc="COURSE MANAGEMENT METHODS">
     def set_nombre(self, value: str): self.nombre = value
     def set_profesor_id(self, value: str): self.profesor_id = value
@@ -174,4 +185,104 @@ class AdminState(UIState):
     def on_student_form_open_change(self, is_open: bool):
         if not is_open:
             self.close_student_form()
+    #</editor-fold>
+
+    #<editor-fold desc="TEACHER MANAGEMENT METHODS">
+    @rx.var
+    def filtered_teachers(self) -> list[Profesor]:
+        _ = self.teacher_list_version
+        with get_session() as session:
+            query = sm.select(Profesor)
+            if self.teacher_search_query:
+                query = query.where(Profesor.nombre.contains(self.teacher_search_query))
+            return session.exec(query.order_by(Profesor.id)).all()
+
+    def set_teacher_search_query(self, query: str): self.teacher_search_query = query
+    def set_teacher_nombre(self, value: str): self.teacher_nombre = value
+    def set_teacher_email(self, value: str): self.teacher_email = value
+    def set_teacher_password(self, value: str): self.teacher_password = value
+
+    def toggle_teacher_course_primary(self, course_id: int):
+        if course_id in self.teacher_courses_primary:
+            self.teacher_courses_primary.remove(course_id)
+        else:
+            self.teacher_courses_primary.append(course_id)
+
+    def toggle_teacher_course_substitute(self, course_id: int):
+        if course_id in self.teacher_courses_substitute:
+            self.teacher_courses_substitute.remove(course_id)
+        else:
+            self.teacher_courses_substitute.append(course_id)
+
+    def _clear_teacher_form(self):
+        self.editing_teacher_id, self.teacher_nombre, self.teacher_email, self.teacher_password = None, "", "", ""
+        self.teacher_courses_primary, self.teacher_courses_substitute = [], []
+
+    def open_teacher_form(self, teacher_id: int | None = None):
+        self._clear_teacher_form()
+        if teacher_id:
+            self.editing_teacher_id = teacher_id
+            with get_session() as session:
+                teacher = session.get(Profesor, teacher_id)
+                if teacher:
+                    self.teacher_nombre, self.teacher_email = teacher.nombre, teacher.email
+                    self.teacher_courses_primary = [c.id for c in self.cursos if c.profesor_id == teacher_id]
+                    self.teacher_courses_substitute = [c.id for c in self.cursos if c.profesor_suplente_id == teacher_id]
+        self.show_teacher_form = True
+
+    def close_teacher_form(self):
+        self.show_teacher_form = False
+        self._clear_teacher_form()
+
+    def save_teacher(self):
+        with get_session() as session:
+            # Save teacher info
+            if self.editing_teacher_id:
+                teacher = session.get(Profesor, self.editing_teacher_id)
+                if teacher:
+                    teacher.nombre, teacher.email = self.teacher_nombre, self.teacher_email
+                    if self.teacher_password:
+                        teacher.password = get_password_hash(self.teacher_password)
+                    session.add(teacher)
+            else:
+                password = self.teacher_password if self.teacher_password else "defaultpassword"
+                teacher = Profesor(nombre=self.teacher_nombre, email=self.teacher_email, password=get_password_hash(password))
+                session.add(teacher)
+            session.commit()
+            session.refresh(teacher)
+
+            # Update course assignments
+            all_courses = session.exec(sm.select(Curso)).all()
+            for course in all_courses:
+                # Primary teacher assignments
+                if course.id in self.teacher_courses_primary and course.profesor_id != teacher.id:
+                    course.profesor_id = teacher.id
+                    session.add(course)
+                elif course.id not in self.teacher_courses_primary and course.profesor_id == teacher.id:
+                    course.profesor_id = None # De-assign
+                    session.add(course)
+                # Substitute teacher assignments
+                if course.id in self.teacher_courses_substitute and course.profesor_suplente_id != teacher.id:
+                    course.profesor_suplente_id = teacher.id
+                    session.add(course)
+                elif course.id not in self.teacher_courses_substitute and course.profesor_suplente_id == teacher.id:
+                    course.profesor_suplente_id = None # De-assign
+                    session.add(course)
+            session.commit()
+
+        self.close_teacher_form()
+        self.teacher_list_version += 1
+
+    def toggle_teacher_status(self, teacher_id: int, is_active: bool):
+        with get_session() as session:
+            teacher = session.get(Profesor, teacher_id)
+            if teacher:
+                teacher.is_active = is_active
+                session.add(teacher)
+                session.commit()
+        self.teacher_list_version += 1
+
+    def on_teacher_form_open_change(self, is_open: bool):
+        if not is_open:
+            self.close_teacher_form()
     #</editor-fold>

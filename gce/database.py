@@ -25,11 +25,11 @@ def init_db():
         if not session.exec(sm.select(Profesor)).first():
             print("Database is empty, initializing with seed data...")
             profesores = [
-                Profesor(id=1, nombre="Ana López"),
-                Profesor(id=2, nombre="Carlos Pérez"),
-                Profesor(id=3, nombre="Laura García"),
-                Profesor(id=4, nombre="Miguel Fernández"),
-                Profesor(id=5, nombre="Sofía Ruiz"),
+                Profesor(id=1, nombre="Ana López", email="ana.lopez@example.com", password=get_password_hash("password")),
+                Profesor(id=2, nombre="Carlos Pérez", email="carlos.perez@example.com", password=get_password_hash("password")),
+                Profesor(id=3, nombre="Laura García", email="laura.garcia@example.com", password=get_password_hash("password")),
+                Profesor(id=4, nombre="Miguel Fernández", email="miguel.fernandez@example.com", password=get_password_hash("password")),
+                Profesor(id=5, nombre="Sofía Ruiz", email="sofia.ruiz@example.com", password=get_password_hash("password")),
             ]
             session.add_all(profesores)
 

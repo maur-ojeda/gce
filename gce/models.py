@@ -6,6 +6,9 @@ import datetime
 class Profesor(sm.SQLModel, table=True):
     id: int | None = sm.Field(default=None, primary_key=True)
     nombre: str
+    email: str = sm.Field(unique=True, index=True)
+    password: str
+    is_active: bool = sm.Field(default=True, index=True)
 
 class Estudiante(sm.SQLModel, table=True):
     id: int | None = sm.Field(default=None, primary_key=True)
@@ -19,7 +22,7 @@ class Estudiante(sm.SQLModel, table=True):
 class Curso(sm.SQLModel, table=True):
     id: int | None = sm.Field(default=None, primary_key=True)
     nombre: str
-    profesor_id: int
+    profesor_id: int | None = None
     profesor_suplente_id: int | None = None
     cupos_totales: int
     descripcion: str
