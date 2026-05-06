@@ -23,7 +23,6 @@ def init_db():
     with sm.Session(engine) as session:
         # Check if tables are empty before populating
         if not session.exec(sm.select(Profesor)).first():
-            print("Database is empty, initializing with seed data...")
             profesores = [
                 Profesor(id=1, nombre="Ana López", email="ana.lopez@example.com", password=get_password_hash("password")),
                 Profesor(id=2, nombre="Carlos Pérez", email="carlos.perez@example.com", password=get_password_hash("password")),
@@ -76,7 +75,6 @@ def init_db():
             ]
             session.add_all(cursos)
             session.commit()
-            print("Database initialized successfully.")
         else:
-            print("Database already contains data, skipping initialization.")
+            
 

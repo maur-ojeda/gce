@@ -26,8 +26,7 @@ class StudentState(UIState):
             self.show_darse_de_baja_button_in_modal = (
                 est.id in curso["estudiantes_inscritos"]
             )
-            print(f"show_darse_de_baja_button_in_modal: {self.show_darse_de_baja_button_in_modal}") # Add this
-            print(f"est.id in curso['estudiantes_inscritos']: {est.id in curso['estudiantes_inscritos']}") # Add this
+            
         else:
             self.show_inscribir_button_in_modal = False
             self.show_darse_de_baja_button_in_modal = False

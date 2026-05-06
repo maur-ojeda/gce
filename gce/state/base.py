@@ -71,7 +71,6 @@ class BaseState(rx.State):
         return self.rol_actual != ""
 
     def set_inscripcion_activa(self, value: bool):
-        print(f"set_inscripcion_activa called with: {value}") # Add this line
         self.inscripcion_activa = value
 
     # MÉTODOS COMUNES
